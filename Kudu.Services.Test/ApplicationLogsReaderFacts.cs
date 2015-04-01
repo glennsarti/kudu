@@ -16,7 +16,27 @@ using Moq;
 using Xunit;
 
 namespace Kudu.Services.Test
-{    
+{
+    // suwatch testing only - will remove
+    [Kudu.TestHarness.Xunit.KuduXunitTestClass]
+    public class Example
+    {
+        private static int _count;
+        Xunit.Abstractions.ITestOutputHelper output;
+
+        public Example(Xunit.Abstractions.ITestOutputHelper output)
+        {
+            this.output = output;
+        }
+
+        [Fact]
+        public void TestThis()
+        {
+            output.WriteLine("I'm inside the test! count=" + _count);
+            Assert.Equal(2, ++_count);
+        }
+    }
+
     public class ApplicationLogsReaderFacts
     {
         [Fact]

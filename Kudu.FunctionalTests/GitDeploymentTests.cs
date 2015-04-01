@@ -7,14 +7,14 @@ using Kudu.Client;
 using Kudu.Contracts.Settings;
 using Kudu.Core;
 using Kudu.Core.Deployment;
-using Kudu.Core.Infrastructure;
 using Kudu.FunctionalTests.Infrastructure;
 using Kudu.TestHarness;
+using Kudu.TestHarness.Xunit;
 using Xunit;
 
 namespace Kudu.FunctionalTests
 {
-    [TestHarnessClassCommand]
+    [KuduXunitTestClass]
     public class GitDeploymentTests
     {
         // ASP.NET apps
@@ -61,7 +61,8 @@ namespace Kudu.FunctionalTests
             PushAndDeployApps("kuduglob", "master", "ASP.NET MVC", HttpStatusCode.OK, "酷度");
         }
 
-        [Fact(Skip="Still needs more work in the deployment script to work")]
+        // Still needs more work in the deployment script to work
+        // [Fact]
         public void PushAndDeployAspNetAppUnicodeName()
         {
             PushAndDeployApps("-benr-", "master", "Hello!", HttpStatusCode.OK, "");
@@ -143,7 +144,7 @@ namespace Kudu.FunctionalTests
                     expectedLogFeedback };
                 KuduAssert.VerifyLogOutput(appManager, results[0].Id, expectedStrings);
 
-                var ex = await ExceptionAssert.ThrowsAsync<HttpUnsuccessfulRequestException>(() => appManager.DeploymentManager.GetDeploymentScriptAsync());
+                var ex = await Assert.ThrowsAsync<HttpUnsuccessfulRequestException>(() => appManager.DeploymentManager.GetDeploymentScriptAsync());
                 Assert.Equal(HttpStatusCode.NotFound, ex.ResponseMessage.StatusCode);
                 Assert.Contains("Operation only supported if not using a custom deployment script", ex.ResponseMessage.ExceptionMessage);
             });
