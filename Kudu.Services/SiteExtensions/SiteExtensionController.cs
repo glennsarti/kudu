@@ -87,6 +87,7 @@ namespace Kudu.Services.SiteExtensions
                     if (!installationLock.IsHeld
                         && string.Equals(Constants.SiteExtensionProvisioningStateSucceeded, armSettings.ProvisioningState, StringComparison.OrdinalIgnoreCase))
                     {
+                        tracer.Trace("Package {0} was just installed.", id);
                         extension = await _manager.GetLocalExtension(id, checkLatest);
                         if (extension == null)
                         {
@@ -101,7 +102,7 @@ namespace Kudu.Services.SiteExtensions
                         }
                         else
                         {
-                            if (SiteExtensionInstallationLock.IsAnyPendingLock(_environment.SiteExtensionSettingsPath))
+                            if (SiteExtensionInstallationLock.IsAnyPendingLock(_environment.SiteExtensionSettingsPath, tracer))
                             {
                                 using (tracer.Step("{0} finsihed installation. But there is other installation on-going, fake the status to be Created, so that we can restart once for all.", id))
                                 {
@@ -380,13 +381,14 @@ namespace Kudu.Services.SiteExtensions
         /// </summary>
         private bool UpdateArmSettingsForSuccessInstallation()
         {
+            var tracer = _traceFactory.GetTracer();
+            tracer.Trace("Checking if there is any installation finsihed recently, if there is one, update its status.");
             var batchUpdateLock = SiteExtensionBatchUpdateStatusLock.CreateLock(_environment.SiteExtensionSettingsPath);
 
             bool isAnyUpdate = false;
 
             bool islocked = batchUpdateLock.TryLockOperation(() =>
             {
-                var tracer = _traceFactory.GetTracer();
                 string[] packageDirs = FileSystemHelpers.GetDirectories(_environment.SiteExtensionSettingsPath);
                 foreach (var dir in packageDirs)
                 {
@@ -399,6 +401,7 @@ namespace Kudu.Services.SiteExtensions
                         {
                             armSettings.Operation = null;
                             isAnyUpdate = true;
+                            tracer.Trace("Updated {0}", dir);
                         }
                         catch (Exception ex)
                         {

@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using Kudu.Contracts.Tracing;
 using Kudu.Core.Infrastructure;
+using Kudu.Core.Tracing;
 
 namespace Kudu.Core.SiteExtensions
 {
@@ -44,12 +47,13 @@ namespace Kudu.Core.SiteExtensions
             return installationLock;
         }
 
-        public static bool IsAnyPendingLock(string rootPath)
+        public static bool IsAnyPendingLock(string rootPath, ITracer tracer)
         {
             bool hasPendingLock = false;
 
             try
             {
+                tracer.Trace("Checking if there is other pending installation ...");
                 string[] packageDirs = FileSystemHelpers.GetDirectories(rootPath);
                 foreach (var dir in packageDirs)
                 {
@@ -81,9 +85,10 @@ namespace Kudu.Core.SiteExtensions
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 // no-op
+                tracer.TraceError(ex, "Failed to check pending installation lock. Assume there is no pending lock.");
             }
 
             return hasPendingLock;

@@ -133,6 +133,7 @@ namespace Kudu.Core.SiteExtensions
         {
             try
             {
+                tracer.Trace("Checking if there is any installation require site restart ...");
                 string[] packageDirs = FileSystemHelpers.GetDirectories(siteExtensionStatusRoot);
                 foreach (var dir in packageDirs)
                 {
